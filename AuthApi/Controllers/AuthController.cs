@@ -27,6 +27,7 @@ namespace AuthApi.Controllers
             _configuration = configuration;
         }
 
+
         [HttpPost]
         [Route("Registration")]
         public async Task<IActionResult> Register([FromBody] RegisterModel model)
@@ -34,8 +35,11 @@ namespace AuthApi.Controllers
             var userExists = await _userManager.FindByNameAsync(model.UserName);
             if (userExists != null)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel { 
-                    Status = "Error", Message = "User Already Exists ! " });
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Status = "Error",
+                    Message = "User Already Exists ! "
+                });
             }
             ApplicationUser user = new ApplicationUser()
             {
@@ -60,6 +64,7 @@ namespace AuthApi.Controllers
             }
             return Ok(new ResponseModel { Status = "Success", Message = "User Created Successfully ! " });
         }
+
 
         [HttpPost]
         [Route("Login")]
@@ -91,6 +96,7 @@ namespace AuthApi.Controllers
             return Unauthorized();
         }
 
+
         [HttpPost]
         [Route("Change-Password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePwdModel model)
@@ -98,14 +104,14 @@ namespace AuthApi.Controllers
             var user = await _userManager.FindByNameAsync(model.UserName);
             if (user == null)
             {
-                return StatusCode(StatusCodes.Status404NotFound, new ResponseModel { Status = "Error", Message = "User does not exists ! "});
+                return StatusCode(StatusCodes.Status404NotFound, new ResponseModel { Status = "Error", Message = "User does not exists ! " });
             }
             if (string.Compare(model.NewPassword, model.ConfirmNewPassword) != 0)
             {
                 return StatusCode(StatusCodes.Status400BadRequest, new ResponseModel { Status = "Error", Message = "Confirm New Password does not match the New Password !  ! " });
             }
             var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
-            if(!result.Succeeded)
+            if (!result.Succeeded)
             {
                 var errors = new List<string>();
                 foreach (var error in result.Errors)
@@ -114,9 +120,54 @@ namespace AuthApi.Controllers
                 }
                 return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel { Status = "Error", Message = string.Join(",", errors) });
             }
-            return Ok(new ResponseModel { Status = "Success", Message = "Password Changed Successfully ! "}); 
+            return Ok(new ResponseModel { Status = "Success", Message = "Password Changed Successfully ! " });
         }
 
-    }
 
+        [HttpPost]
+        [Route("Reset-Password-Token")]
+        public async Task<IActionResult> ResetPasswordToken([FromBody] ResetPwdTokenModel model)
+        {
+            var user = await _userManager.FindByNameAsync(model.Username);
+            if (user == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new ResponseModel { Status = "Error", Message = "User does not exists ! " });
+            }
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            return Ok(new { token = token });
+        }
+
+
+        [HttpPost]
+        [Route("Reset-Password")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPwdModel model)
+        {
+            var user = await _userManager.FindByNameAsync(model.UserName);
+            if (user == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new ResponseModel { Status = "Error", Message = "User does not exists ! " });
+            }
+            if (string.Compare(model.NewPassword, model.ConfirmNewPassword) != 0)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new ResponseModel { Status = "Error", Message = "Confirm New Password does not match the New Password !  ! " });
+            }
+            if (string.IsNullOrEmpty(model.Token))
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new ResponseModel { Status = "Error", Message = "Invalid Token !" });
+            }
+            var result = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
+            if (!result.Succeeded)
+            {
+                var errors = new List<string>();
+                foreach (var error in result.Errors)
+                {
+                    errors.Add(error.Description);
+                }
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel { Status = "Error", Message = string.Join(",", errors) });
+            }
+            return Ok(new ResponseModel { Status = "Success", Message = "Password Reseted Successfully ! " });
+        }
+
+
+    }
 }
