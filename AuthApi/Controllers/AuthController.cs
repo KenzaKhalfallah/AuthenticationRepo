@@ -34,19 +34,29 @@ namespace AuthApi.Controllers
             var userExists = await _userManager.FindByNameAsync(model.UserName);
             if (userExists != null)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel { Status = "Error", Message = "User Already Exists ! " });
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel { 
+                    Status = "Error", Message = "User Already Exists ! " });
             }
             ApplicationUser user = new ApplicationUser()
             {
                 Email = model.Email,
                 SecurityStamp = Guid.NewGuid().ToString(),
                 UserName = model.UserName,
-                //PhoneNumber = Guid.NewGuid().ToString(),
+                PhoneNumber = model.PhoneNumber,
             };
             var result = await _userManager.CreateAsync(user, model.Password);
-            if (result.Succeeded)
+            if (!result.Succeeded)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel { Status = "Error", Message = "User Creation Failed ! " });
+                var errors = new List<string>();
+                foreach (var error in result.Errors)
+                {
+                    errors.Add(error.Description);
+                }
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel
+                {
+                    Status = "Error",
+                    Message = string.Join(",", errors)
+                });
             }
             return Ok(new ResponseModel { Status = "Success", Message = "User Created Successfully ! " });
         }
@@ -80,6 +90,33 @@ namespace AuthApi.Controllers
             }
             return Unauthorized();
         }
+
+        [HttpPost]
+        [Route("Change-Password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePwdModel model)
+        {
+            var user = await _userManager.FindByNameAsync(model.UserName);
+            if (user == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new ResponseModel { Status = "Error", Message = "User does not exists ! "});
+            }
+            if (string.Compare(model.NewPassword, model.ConfirmNewPassword) != 0)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, new ResponseModel { Status = "Error", Message = "Confirm New Password does not match the New Password !  ! " });
+            }
+            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+            if(!result.Succeeded)
+            {
+                var errors = new List<string>();
+                foreach (var error in result.Errors)
+                {
+                    errors.Add(error.Description);
+                }
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel { Status = "Error", Message = string.Join(",", errors) });
+            }
+            return Ok(new ResponseModel { Status = "Success", Message = "Password Changed Successfully ! "}); 
+        }
+
     }
 
 }

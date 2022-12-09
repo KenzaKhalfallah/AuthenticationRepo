@@ -9,6 +9,7 @@ namespace AuthApi.Models
 
         [Required(ErrorMessage = "Email is required")]
         //[RegularExpression("^\\S +@\\S +\\.\\S +$", ErrorMessage = "Please enter valid Email")]
+        [DataType(DataType.EmailAddress)]
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Password is required")]
@@ -20,8 +21,8 @@ namespace AuthApi.Models
         [DataType(DataType.Password)]
         public string ConfirmPassword { get; set; }*/
 
-       //[Required(ErrorMessage = "Phone Number is required")]
-       //[DataType(DataType.PhoneNumber)]
-       //public int? PhoneNumber { get; set; }
+       [Required(ErrorMessage = "Phone Number is required")]
+       [DataType(DataType.PhoneNumber)]
+       public string PhoneNumber { get; set; }
     }
 }
