@@ -1,6 +1,6 @@
 ﻿namespace AuthApi.Models
 {
-    public class ResetPwdTokenModel
+    public class UsernameModel
     {
         public string Username { get; set; }
     }

@@ -3,11 +3,13 @@ using AuthApi.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -96,6 +98,19 @@ namespace AuthApi.Controllers
             return Unauthorized();
         }
 
+        [HttpGet]
+        [Route("Get-All-Users")]
+        public async Task<IEnumerable<UserModel>> ListUsers()
+        {
+            var listUsers = await _userManager.Users.Select(p => new UserModel
+            {
+                UserName = p.UserName,
+                Email = p.Email,
+                PhoneNumber = p.PhoneNumber,
+            }).ToListAsync();
+
+            return listUsers;
+        }
 
         [HttpPost]
         [Route("Change-Password")]
@@ -126,7 +141,7 @@ namespace AuthApi.Controllers
 
         [HttpPost]
         [Route("Reset-Password-Token")]
-        public async Task<IActionResult> ResetPasswordToken([FromBody] ResetPwdTokenModel model)
+        public async Task<IActionResult> ResetPasswordToken([FromBody] UsernameModel model)
         {
             var user = await _userManager.FindByNameAsync(model.Username);
             if (user == null)
@@ -169,5 +184,67 @@ namespace AuthApi.Controllers
         }
 
 
+        [HttpPost]
+        [Route("Change-User-ByName")]
+        public async Task<IActionResult> ChangeUser([FromBody] ChangeUserModel model)
+        {
+            var user = await _userManager.FindByNameAsync(model.UserName);
+            if (user == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new ResponseModel { Status = "Error", Message = "User does not exists ! " });
+            }
+            var tokenEmail = await _userManager.GenerateChangeEmailTokenAsync(user, model.NewEmail);
+            var ChangeEmail = await _userManager.ChangeEmailAsync(user, model.NewEmail, tokenEmail);
+            if (!ChangeEmail.Succeeded)
+            {
+                var errors = new List<string>();
+                foreach (var error in ChangeEmail.Errors)
+                {
+                    errors.Add(error.Description);
+                }
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel { Status = "Error", Message = string.Join(",", errors) });
+            }
+            var tokenPhoneNumber = await _userManager.GenerateChangePhoneNumberTokenAsync(user, model.NewPhoneNumber);
+            var ChangePhoneNumber = await _userManager.ChangePhoneNumberAsync(user, model.NewPhoneNumber, tokenPhoneNumber);
+            if (!ChangePhoneNumber.Succeeded)
+            {
+                var errors = new List<string>();
+                foreach (var error in ChangePhoneNumber.Errors)
+                {
+                    errors.Add(error.Description);
+                }
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel { Status = "Error", Message = string.Join(",", errors) });
+            }
+            return Ok(new ResponseModel { Status = "Success", Message = "Contact User Changed Successfully ! " });
+        }
+
+
+        [HttpDelete]
+        [Route("Delete-User")]
+        public async Task<IActionResult> DeleteUser([FromBody] UsernameModel model)
+        {
+            // "ResetPwdTokenModel" used just because it contains only one attribute "username"
+
+            var user = await _userManager.FindByNameAsync(model.Username);
+            if (user == null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound, new ResponseModel { Status = "Error", Message = "User does not exists ! " });
+            }
+            var delete = await _userManager.DeleteAsync(user);
+            if (!delete.Succeeded)
+            {
+                var errors = new List<string>();
+                foreach (var error in delete.Errors)
+                {
+                    errors.Add(error.Description);
+                }
+                return StatusCode(StatusCodes.Status500InternalServerError, new ResponseModel { Status = "Error", Message = string.Join(",", errors) });
+            }
+            return Ok(new ResponseModel { Status = "Success", Message = "User Deleted Successfully ! " });
+        }
+
+
+
+        }
+
     }
-}

@@ -63,3 +63,5 @@ C:\Users\kenza\Desktop\AuthApi\AuthApi\obj\Debug\net5.0\refint\AuthApi.dll
 C:\Users\kenza\Desktop\AuthApi\AuthApi\obj\Debug\net5.0\AuthApi.pdb
 C:\Users\kenza\Desktop\AuthApi\AuthApi\obj\Debug\net5.0\AuthApi.genruntimeconfig.cache
 C:\Users\kenza\Desktop\AuthApi\AuthApi\obj\Debug\net5.0\ref\AuthApi.dll
+C:\Users\kenza\Desktop\AuthApi\AuthApi\bin\Debug\net5.0\Microsoft.VisualStudio.Web.CodeGeneration.Contracts.dll
+C:\Users\kenza\Desktop\AuthApi\AuthApi\bin\Debug\net5.0\Newtonsoft.Json.dll
