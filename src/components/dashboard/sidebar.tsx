@@ -1,4 +1,3 @@
-import React, { useEffect } from 'react';
 import Drawer from '@material-ui/core/Drawer';
 import clsx from 'clsx';
 import IconButton from '@material-ui/core/IconButton';
