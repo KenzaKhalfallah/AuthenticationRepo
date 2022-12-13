@@ -1,84 +1,74 @@
 import { Button, Grid } from "@material-ui/core";
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import apiRegister from "../../api/api.registerUser";
+import apiReset from "../../api/api.reset";
 import CustomBody from "../../components/body-custom/custom-body";
 import CustomTextField from "../../components/custom-text-field/custom-text-field";
 import CustomMainForm from "../../components/form/custom-main-form";
-import { RegisterUserFormValues } from "../../models/RegisterUser";
+import { ResetFormValues } from "../../models/Reset";
 
-function Register() {
-  const [registerUser, setRegisterUser] = useState<RegisterUserFormValues>(
-    new RegisterUserFormValues()
-  );
-  const navigate = useNavigate();
+function Reset() {
+  const [reset, setReset] = useState<ResetFormValues>(new ResetFormValues());
 
-  function changeValueRegisterUser(
+  function changeValueReset(
     event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
   ) {
     const { value, name } = event.target;
-    setRegisterUser({ ...registerUser, [name]: value });
+    setReset({ ...reset, [name]: value });
   }
 
   function handleSubmit(event: React.FocusEvent<HTMLFormElement>) {
     event.preventDefault();
-    apiRegister.register(registerUser);
-    navigate("/SignIn");
-    //console.log(registerUser);
+    apiReset.reset(reset);
+    //console.log(signIn);
   }
 
   return (
     <React.Fragment>
       <CustomBody>
-        <CustomMainForm title={"Create New Account"}>
+        <CustomMainForm title={"Reset Password"}>
           <form onSubmit={handleSubmit}>
             <React.Fragment>
+              <Grid item xs={12}>
+                <a href="/Register">Sign Up If you dont have an account</a>
+              </Grid>
+              <br></br>
               <Grid container spacing={3}>
                 <Grid item xs={12}>
                   <CustomTextField
-                    value={registerUser.userName}
-                    onChange={(event) => changeValueRegisterUser(event)}
+                    value={reset.userName}
+                    onChange={(event) => changeValueReset(event)}
                     required
                     name="userName"
                     label="User name"
                   />
                 </Grid>
-                <Grid item xs={12}>
-                  <CustomTextField
-                    value={registerUser.email}
-                    onChange={(event) => changeValueRegisterUser(event)}
-                    required
-                    name="email"
-                    label="Email Address"
-                  />
-                </Grid>
                 <Grid item xs={12} sm={6}>
                   <CustomTextField
-                    value={registerUser.password}
-                    onChange={(event) => changeValueRegisterUser(event)}
+                    value={reset.newPassword}
+                    onChange={(event) => changeValueReset(event)}
                     required
-                    name="password"
+                    name="newPassword"
                     type="password"
-                    label="Password"
+                    label="newPassword"
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <CustomTextField
-                    value={registerUser.phoneNumber}
-                    onChange={(event) => changeValueRegisterUser(event)}
+                    value={reset.confirmNewPassword}
+                    onChange={(event) => changeValueReset(event)}
                     required
-                    name="phoneNumber"
-                    type="number"
-                    label="Phone Number"
+                    name="confirmNewPassword"
+                    type="password"
+                    label="confirmNewPassword"
                   />
                 </Grid>
                 <Grid item xs={12}>
-                  <a href="/">Sign In If you already have an account</a>
+                  <a href="/">Sign In</a>
                 </Grid>
               </Grid>
               <div style={{ display: "flex", justifyContent: "flex-end" }}>
                 <Button type={"submit"} variant="contained" color={"primary"}>
-                  Sign Up
+                  Reset
                 </Button>
               </div>
             </React.Fragment>
@@ -89,4 +79,4 @@ function Register() {
   );
 }
 
-export default Register;
+export default Reset;
