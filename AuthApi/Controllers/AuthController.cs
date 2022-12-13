@@ -1,5 +1,6 @@
 ﻿using AuthApi.Application;
 using AuthApi.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -158,6 +159,8 @@ namespace AuthApi.Controllers
         public async Task<IActionResult> ResetPassword([FromBody] ResetPwdModel model)
         {
             var user = await _userManager.FindByNameAsync(model.UserName);
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
             if (user == null)
             {
                 return StatusCode(StatusCodes.Status404NotFound, new ResponseModel { Status = "Error", Message = "User does not exists ! " });
@@ -166,11 +169,11 @@ namespace AuthApi.Controllers
             {
                 return StatusCode(StatusCodes.Status400BadRequest, new ResponseModel { Status = "Error", Message = "Confirm New Password does not match the New Password !  ! " });
             }
-            if (string.IsNullOrEmpty(model.Token))
+            if (string.IsNullOrEmpty(token))
             {
                 return StatusCode(StatusCodes.Status400BadRequest, new ResponseModel { Status = "Error", Message = "Invalid Token !" });
             }
-            var result = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
+            var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
             if (!result.Succeeded)
             {
                 var errors = new List<string>();
@@ -185,7 +188,7 @@ namespace AuthApi.Controllers
 
 
         [HttpPost]
-        [Route("Change-User-ByName")]
+        [Route("Update-User")]
         public async Task<IActionResult> ChangeUser([FromBody] ChangeUserModel model)
         {
             var user = await _userManager.FindByNameAsync(model.UserName);
@@ -223,8 +226,6 @@ namespace AuthApi.Controllers
         [Route("Delete-User")]
         public async Task<IActionResult> DeleteUser([FromBody] UsernameModel model)
         {
-            // "ResetPwdTokenModel" used just because it contains only one attribute "username"
-
             var user = await _userManager.FindByNameAsync(model.Username);
             if (user == null)
             {
@@ -244,7 +245,28 @@ namespace AuthApi.Controllers
         }
 
 
+        [Authorize, HttpGet]
+        [Route("Get-User")]
+        public async Task<ApplicationUser> getUser()
+        {
+            var listUsers = await _userManager.GetUserAsync(User);
 
+            return listUsers;
         }
 
+        /*private Task<ApplicationUser> GetCurrentUserAsync() => _userManager.GetUserAsync(User);
+
+
+        [HttpGet("Profile")]
+        public async Task<IActionResult> GetProfile()
+        {
+            var userId = _userManager.GetUserId(User);
+           //var user = await _userManager.FindByIdAsync(userId);
+           //var user = User.Identity.Name;
+            return Ok(new ResponseModel { Status = "Success", Message = string.Join(", ", userId) });
+        }*/
+
+
     }
+
+}

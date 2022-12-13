@@ -13,6 +13,6 @@ namespace AuthApi.Models
         [Required(ErrorMessage = "Confirm New Password is required")]
         public string ConfirmNewPassword { get; set; }
 
-        public string Token { get; set; }
+       // public string Token { get; set; }
     }
 }
